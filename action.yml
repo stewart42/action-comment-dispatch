@@ -1,11 +1,10 @@
-name: 'Your name here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+name: 'Comment to trigger action'
+description: 'Comment to trigeger a repository dispatch'
+author: 'stewart42'
 inputs:
-  milliseconds: # change this
+  token:
+    description: 'A GitHub Access Token'
     required: true
-    description: 'input description here'
-    default: 'default value if applicable'
 runs:
   using: 'node12'
   main: 'dist/index.js'
