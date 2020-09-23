@@ -5,7 +5,7 @@ on:
     types: created
 
 jobs:
-  build-test:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: checkout
@@ -13,3 +13,17 @@ jobs:
       - uses: ./
         with:
           GITHUB_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
+          prefix: '@ghostdog'
+          trigger: 'build'
+          event_type: 'build'
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      - uses: ./
+        with:
+          GITHUB_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
+          prefix: '@ghostdog'
+          trigger: 'format'
+          event_type: 'format'

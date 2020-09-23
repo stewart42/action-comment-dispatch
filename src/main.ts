@@ -3,19 +3,18 @@ import {context, getOctokit} from '@actions/github'
 
 async function run(): Promise<void> {
   try {
-    core.debug(`event triggered ${context.eventName}`)
+    core.startGroup('Validating')
+
     if (context.eventName !== 'issue_comment') {
-      core.setFailed('Event is not "issue_comment"')
+      core.debug(`event triggered ${context.eventName}`)
+      core.setFailed('Event for workflow is not "issue_comment"')
       return
     }
 
     const token = core.getInput('GITHUB_TOKEN', {required: true})
-
-    if (!token) {
-      core.debug(`no token provided`)
-      core.setFailed('If "reaction" is supplied, GITHUB_TOKEN is required')
-      return
-    }
+    const prefix = core.getInput('prefix', {required: true})
+    const trigger = core.getInput('trigger', {required: true})
+    const eventType = core.getInput('event_type', {required: true})
 
     const {owner, repo} = context.repo
     core.debug(`owner: ${owner} repo: ${repo}`)
@@ -29,30 +28,50 @@ async function run(): Promise<void> {
       repo,
       issue_number: context.issue.number
     })
-    core.debug(`is pull request: ${!!pull_request} ${pull_request}`)
 
     if (!pull_request) {
-      core.setFailed('Comment is not on a Pull Request')
+      core.info('Comment is not on a Pull Request, exiting.')
+      core.endGroup()
+      return
+    }
+    core.info(`Comment is on a Pull Request`)
+
+    const comment: {id: number | undefined; body: string | undefined} = {
+      id: context.payload.comment?.id,
+      body: context.payload.comment?.body
+    }
+
+    if (!comment.id) {
+      core.info('No comment found')
+      core.endGroup()
       return
     }
 
-    const {comment} = context.payload || {
-      comment: {
-        id: undefined,
-        body: ''
-      }
+    if (!comment.body || !comment.body.trim().startsWith(prefix)) {
+      core.info(`Prefix doesn't match, exiting.`)
+      core.endGroup()
+      return
     }
+    core.info(`Prefix matches beginning of comment`)
 
-    if (comment && comment.id) {
-      core.debug(`comment: ${comment.id} "${comment.body}"`)
-
-      await octokit.reactions.createForIssueComment({
-        owner,
-        repo,
-        comment_id: comment.id,
-        content: 'eyes'
-      })
+    if (comment.body.trim().includes(trigger)) {
+      core.info(`Trigger not found in comment, exiting.`)
+      core.endGroup()
+      return
     }
+    core.info(`Trigger found in comment.`)
+
+    core.endGroup()
+
+    core.startGroup('Running')
+
+    await octokit.reactions.createForIssueComment({
+      owner,
+      repo,
+      comment_id: comment.id,
+      content: 'eyes'
+    })
+    core.info('Added :eyes: reaction to comment.')
 
     const {
       repository: {
@@ -93,29 +112,27 @@ async function run(): Promise<void> {
       head_sha: headRef.target.oid
     }
 
-    core.debug(`clientPayload: ${JSON.stringify(clientPayload)}`)
+    core.info(
+      `Retrieved PR sha: ${clientPayload.head_sha} and ref: ${clientPayload.head_ref}`
+    )
 
-    if (comment) {
-      const eventType = comment.body
+    await octokit.repos.createDispatchEvent({
+      owner,
+      repo,
+      event_type: eventType,
+      client_payload: clientPayload
+    })
 
-      const response = await octokit.repos.createDispatchEvent({
-        owner,
-        repo,
-        event_type: eventType,
-        client_payload: clientPayload
-      })
+    core.info(`Created Repository Dispatch with type: ${eventType}`)
 
-      core.debug(`dispatch response: ${JSON.stringify(response)}`)
-
-      if (comment.id) {
-        await octokit.reactions.createForIssueComment({
-          owner,
-          repo,
-          comment_id: comment.id,
-          content: 'rocket'
-        })
-      }
-    }
+    await octokit.reactions.createForIssueComment({
+      owner,
+      repo,
+      comment_id: comment.id,
+      content: 'rocket'
+    })
+    core.info('Added :rocket: reaction to comment.')
+    core.endGroup()
   } catch (error) {
     core.debug(error)
     core.setFailed(error.message)
