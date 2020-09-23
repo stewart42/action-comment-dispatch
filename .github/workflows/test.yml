@@ -1,24 +1,19 @@
 name: 'build-test'
-on: # rebuild any PRs and main branch changes
-  pull_request:
-  push:
-    branches:
-      - main
-      - 'releases/*'
+on:
+  repository_dispatch:
+    types: [build-test]
 
 jobs:
-  build: # make sure build/ci work properly
+  build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: checkout
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.client_payload.head_ref }}
+      - run: echo ${{ github.event.client_payload.head_ref :: github.event.client_payload.head_sha }}
+      - run: echo ${{ github.event.client_payload.base_ref :: github.event.client_payload.base_sha }}
       - run: |
           npm install
       - run: |
           npm run all
-  test: # make sure the action works on a clean machine without building
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: ./
-        with:
-          milliseconds: 1000

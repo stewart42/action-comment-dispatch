@@ -1,0 +1,14 @@
+name: 'comment-bot'
+
+on:
+  issue_comment:
+    types: created
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ./
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          event-type: build-test
