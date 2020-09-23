@@ -1412,22 +1412,26 @@ const github_1 = __webpack_require__(438);
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
+            core_1.default.debug(`event triggered ${github_1.context.eventName}`);
             if (github_1.context.eventName !== 'issue_comment') {
                 core_1.default.setFailed('Event is not "issue_comment"');
                 return;
             }
             const token = core_1.default.getInput('GITHUB_TOKEN', { required: true });
             if (!token) {
+                core_1.default.debug(`no token provided`);
                 core_1.default.setFailed('If "reaction" is supplied, GITHUB_TOKEN is required');
                 return;
             }
             const { owner, repo } = github_1.context.repo;
+            core_1.default.debug(`owner: ${owner} repo: ${repo}`);
             const octokit = github_1.getOctokit(token);
             const { data: { pull_request } } = yield octokit.issues.get({
                 owner,
                 repo,
                 issue_number: github_1.context.issue.number
             });
+            core_1.default.debug(`is pull request: ${!!pull_request} ${pull_request}`);
             if (!pull_request) {
                 core_1.default.setFailed('Comment is not on a Pull Request');
                 return;
@@ -1439,6 +1443,7 @@ function run() {
                 }
             };
             if (comment && comment.id) {
+                core_1.default.debug(`comment: ${comment.id} ${comment.body}`);
                 yield octokit.reactions.createForIssueComment({
                     owner,
                     repo,
@@ -1476,6 +1481,7 @@ function run() {
                 head_ref: headRef.name,
                 head_sha: headRef.target.oid
             };
+            core_1.default.debug(`clientPayload: ${clientPayload}`);
             if (comment) {
                 const eventType = comment.body;
                 yield octokit.repos.createDispatchEvent({
@@ -1495,6 +1501,7 @@ function run() {
             }
         }
         catch (error) {
+            core_1.default.debug(error);
             core_1.default.setFailed(error.message);
         }
     });

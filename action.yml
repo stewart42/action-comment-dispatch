@@ -3,7 +3,7 @@ description: 'Comment to trigger a repository dispatch'
 author: 'stewart42'
 inputs:
   GITHUB_TOKEN:
-    description: 'A gitHub access token'
+    description: 'A Github access token'
     required: true
 runs:
   using: 'node12'
