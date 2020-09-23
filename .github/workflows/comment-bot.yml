@@ -13,7 +13,7 @@ jobs:
       - uses: ./
         with:
           GITHUB_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
-          prefix: '@ghostdog'
+          prefix: 'bot'
           trigger: 'build'
           event_type: 'build'
   format:
@@ -24,6 +24,6 @@ jobs:
       - uses: ./
         with:
           GITHUB_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
-          prefix: '@ghostdog'
+          prefix: 'bot'
           trigger: 'format'
           event_type: 'format'
