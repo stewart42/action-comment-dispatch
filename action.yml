@@ -11,7 +11,7 @@ inputs:
   trigger:
     description: 'The text in the comment to trigger the repository dispatch'
     required: true
-  event-type:
+  event_type:
     description: 'The custom event_type to send with when triggering the repository dispatch'
     required: true
 runs:
