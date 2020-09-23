@@ -1476,13 +1476,23 @@ function run() {
                 head_ref: headRef.name,
                 head_sha: headRef.target.oid
             };
-            const eventType = core_1.default.getInput('event-type');
-            yield octokit.repos.createDispatchEvent({
-                owner,
-                repo,
-                event_type: eventType,
-                client_payload: clientPayload
-            });
+            if (comment) {
+                const eventType = comment.body;
+                yield octokit.repos.createDispatchEvent({
+                    owner,
+                    repo,
+                    event_type: eventType,
+                    client_payload: clientPayload
+                });
+                if (comment.id) {
+                    yield octokit.reactions.createForIssueComment({
+                        owner,
+                        repo,
+                        comment_id: comment.id,
+                        content: 'rocket'
+                    });
+                }
+            }
         }
         catch (error) {
             core_1.default.setFailed(error.message);

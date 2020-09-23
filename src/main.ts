@@ -86,14 +86,25 @@ async function run(): Promise<void> {
       head_sha: headRef.target.oid
     }
 
-    const eventType = core.getInput('event-type')
+    if (comment) {
+      const eventType = comment.body
 
-    await octokit.repos.createDispatchEvent({
-      owner,
-      repo,
-      event_type: eventType,
-      client_payload: clientPayload
-    })
+      await octokit.repos.createDispatchEvent({
+        owner,
+        repo,
+        event_type: eventType,
+        client_payload: clientPayload
+      })
+
+      if (comment.id) {
+        await octokit.reactions.createForIssueComment({
+          owner,
+          repo,
+          comment_id: comment.id,
+          content: 'rocket'
+        })
+      }
+    }
   } catch (error) {
     core.setFailed(error.message)
   }
