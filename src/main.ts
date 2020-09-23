@@ -44,7 +44,7 @@ async function run(): Promise<void> {
     }
 
     if (comment && comment.id) {
-      core.debug(`comment: ${comment.id} ${comment.body}`)
+      core.debug(`comment: ${comment.id} "${comment.body}"`)
 
       await octokit.reactions.createForIssueComment({
         owner,
