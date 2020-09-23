@@ -1,9 +1,12 @@
-name: 'Comment to trigger action'
-description: 'Comment to trigeger a repository dispatch'
+name: 'Comment to trigger workflow'
+description: 'Comment to trigger a repository dispatch'
 author: 'stewart42'
 inputs:
-  token:
-    description: 'A GitHub Access Token'
+  GITHUB_TOKEN:
+    description: 'A gitHub access token'
+    required: true
+  event-type:
+    description: 'A custom webhook event name'
     required: true
 runs:
   using: 'node12'
