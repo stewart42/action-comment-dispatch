@@ -1426,19 +1426,19 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const core = __importStar(__webpack_require__(186));
 const github_1 = __webpack_require__(438);
 function run() {
+    var _a, _b;
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            core.debug(`event triggered ${github_1.context.eventName}`);
+            core.startGroup('Validating');
             if (github_1.context.eventName !== 'issue_comment') {
-                core.setFailed('Event is not "issue_comment"');
+                core.debug(`event triggered ${github_1.context.eventName}`);
+                core.setFailed('Event for workflow is not "issue_comment"');
                 return;
             }
             const token = core.getInput('GITHUB_TOKEN', { required: true });
-            if (!token) {
-                core.debug(`no token provided`);
-                core.setFailed('If "reaction" is supplied, GITHUB_TOKEN is required');
-                return;
-            }
+            const prefix = core.getInput('prefix', { required: true });
+            const trigger = core.getInput('trigger', { required: true });
+            const eventType = core.getInput('event_type', { required: true });
             const { owner, repo } = github_1.context.repo;
             core.debug(`owner: ${owner} repo: ${repo}`);
             const octokit = github_1.getOctokit(token);
@@ -1447,26 +1447,42 @@ function run() {
                 repo,
                 issue_number: github_1.context.issue.number
             });
-            core.debug(`is pull request: ${!!pull_request} ${pull_request}`);
             if (!pull_request) {
-                core.setFailed('Comment is not on a Pull Request');
+                core.info('Comment is not on a Pull Request, exiting.');
+                core.endGroup();
                 return;
             }
-            const { comment } = github_1.context.payload || {
-                comment: {
-                    id: undefined,
-                    body: ''
-                }
+            core.info(`Comment is on a Pull Request`);
+            const comment = {
+                id: (_a = github_1.context.payload.comment) === null || _a === void 0 ? void 0 : _a.id,
+                body: (_b = github_1.context.payload.comment) === null || _b === void 0 ? void 0 : _b.body
             };
-            if (comment && comment.id) {
-                core.debug(`comment: ${comment.id} "${comment.body}"`);
-                yield octokit.reactions.createForIssueComment({
-                    owner,
-                    repo,
-                    comment_id: comment.id,
-                    content: 'eyes'
-                });
+            if (!comment.id) {
+                core.info('No comment found');
+                core.endGroup();
+                return;
             }
+            if (!comment.body || !comment.body.trim().startsWith(prefix)) {
+                core.info(`Prefix doesn't match, exiting.`);
+                core.endGroup();
+                return;
+            }
+            core.info(`Prefix matches beginning of comment`);
+            if (comment.body.trim().includes(trigger)) {
+                core.info(`Trigger not found in comment, exiting.`);
+                core.endGroup();
+                return;
+            }
+            core.info(`Trigger found in comment.`);
+            core.endGroup();
+            core.startGroup('Running');
+            yield octokit.reactions.createForIssueComment({
+                owner,
+                repo,
+                comment_id: comment.id,
+                content: 'eyes'
+            });
+            core.info('Added :eyes: reaction to comment.');
             const { repository: { pullRequest: { baseRef, headRef } } } = yield octokit.graphql(`
           query pullRequestDetails($repo:String!, $owner:String!, $number:Int!) {
             repository(name: $repo, owner: $owner) {
@@ -1497,25 +1513,22 @@ function run() {
                 head_ref: headRef.name,
                 head_sha: headRef.target.oid
             };
-            core.debug(`clientPayload: ${JSON.stringify(clientPayload)}`);
-            if (comment) {
-                const eventType = comment.body;
-                const response = yield octokit.repos.createDispatchEvent({
-                    owner,
-                    repo,
-                    event_type: eventType,
-                    client_payload: clientPayload
-                });
-                core.debug(`dispatch response: ${JSON.stringify(response)}`);
-                if (comment.id) {
-                    yield octokit.reactions.createForIssueComment({
-                        owner,
-                        repo,
-                        comment_id: comment.id,
-                        content: 'rocket'
-                    });
-                }
-            }
+            core.info(`Retrieved PR sha: ${clientPayload.head_sha} and ref: ${clientPayload.head_ref}`);
+            yield octokit.repos.createDispatchEvent({
+                owner,
+                repo,
+                event_type: eventType,
+                client_payload: clientPayload
+            });
+            core.info(`Created Repository Dispatch with type: ${eventType}`);
+            yield octokit.reactions.createForIssueComment({
+                owner,
+                repo,
+                comment_id: comment.id,
+                content: 'rocket'
+            });
+            core.info('Added :rocket: reaction to comment.');
+            core.endGroup();
         }
         catch (error) {
             core.debug(error);

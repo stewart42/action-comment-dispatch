@@ -5,6 +5,15 @@ inputs:
   GITHUB_TOKEN:
     description: 'A Github access token'
     required: true
+  prefix:
+    description: 'Comment must start with this value, eg: @bot '
+    required: true
+  trigger:
+    description: 'The text in the comment to trigger the repository dispatch'
+    required: true
+  event-type:
+    description: 'The custom event_type to send with when triggering the repository dispatch'
+    required: true
 runs:
   using: 'node12'
   main: 'dist/index.js'
