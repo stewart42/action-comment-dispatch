@@ -93,17 +93,19 @@ async function run(): Promise<void> {
       head_sha: headRef.target.oid
     }
 
-    core.debug(`clientPayload: ${clientPayload}`)
+    core.debug(`clientPayload: ${JSON.stringify(clientPayload)}`)
 
     if (comment) {
       const eventType = comment.body
 
-      await octokit.repos.createDispatchEvent({
+      const response = await octokit.repos.createDispatchEvent({
         owner,
         repo,
         event_type: eventType,
         client_payload: clientPayload
       })
+
+      core.debug(`dispatch response: ${JSON.stringify(response)}`)
 
       if (comment.id) {
         await octokit.reactions.createForIssueComment({

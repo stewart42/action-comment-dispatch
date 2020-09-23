@@ -1497,15 +1497,16 @@ function run() {
                 head_ref: headRef.name,
                 head_sha: headRef.target.oid
             };
-            core.debug(`clientPayload: ${clientPayload}`);
+            core.debug(`clientPayload: ${JSON.stringify(clientPayload)}`);
             if (comment) {
                 const eventType = comment.body;
-                yield octokit.repos.createDispatchEvent({
+                const response = yield octokit.repos.createDispatchEvent({
                     owner,
                     repo,
                     event_type: eventType,
                     client_payload: clientPayload
                 });
+                core.debug(`dispatch response: ${JSON.stringify(response)}`);
                 if (comment.id) {
                     yield octokit.reactions.createForIssueComment({
                         owner,
