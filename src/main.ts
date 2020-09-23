@@ -3,6 +3,7 @@ import {context, getOctokit} from '@actions/github'
 
 async function run(): Promise<void> {
   try {
+    core.debug(`event triggered ${context.eventName}`)
     if (context.eventName !== 'issue_comment') {
       core.setFailed('Event is not "issue_comment"')
       return
@@ -11,11 +12,14 @@ async function run(): Promise<void> {
     const token = core.getInput('GITHUB_TOKEN', {required: true})
 
     if (!token) {
+      core.debug(`no token provided`)
       core.setFailed('If "reaction" is supplied, GITHUB_TOKEN is required')
       return
     }
 
     const {owner, repo} = context.repo
+    core.debug(`owner: ${owner} repo: ${repo}`)
+
     const octokit = getOctokit(token)
 
     const {
@@ -25,6 +29,7 @@ async function run(): Promise<void> {
       repo,
       issue_number: context.issue.number
     })
+    core.debug(`is pull request: ${!!pull_request} ${pull_request}`)
 
     if (!pull_request) {
       core.setFailed('Comment is not on a Pull Request')
@@ -39,6 +44,8 @@ async function run(): Promise<void> {
     }
 
     if (comment && comment.id) {
+      core.debug(`comment: ${comment.id} ${comment.body}`)
+
       await octokit.reactions.createForIssueComment({
         owner,
         repo,
@@ -86,6 +93,8 @@ async function run(): Promise<void> {
       head_sha: headRef.target.oid
     }
 
+    core.debug(`clientPayload: ${clientPayload}`)
+
     if (comment) {
       const eventType = comment.body
 
@@ -106,6 +115,7 @@ async function run(): Promise<void> {
       }
     }
   } catch (error) {
+    core.debug(error)
     core.setFailed(error.message)
   }
 }
