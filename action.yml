@@ -5,9 +5,6 @@ inputs:
   GITHUB_TOKEN:
     description: 'A gitHub access token'
     required: true
-  event-type:
-    description: 'A custom webhook event name'
-    required: true
 runs:
   using: 'node12'
   main: 'dist/index.js'
