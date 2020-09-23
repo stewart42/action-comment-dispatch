@@ -1468,7 +1468,7 @@ function run() {
                 return;
             }
             core.info(`Prefix matches beginning of comment`);
-            if (comment.body.trim().includes(trigger)) {
+            if (!comment.body.trim().includes(trigger)) {
                 core.info(`Trigger not found in comment, exiting.`);
                 core.endGroup();
                 return;
