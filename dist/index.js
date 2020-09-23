@@ -1459,7 +1459,7 @@ function run() {
                 }
             };
             if (comment && comment.id) {
-                core.debug(`comment: ${comment.id} ${comment.body}`);
+                core.debug(`comment: ${comment.id} "${comment.body}"`);
                 yield octokit.reactions.createForIssueComment({
                     owner,
                     repo,
