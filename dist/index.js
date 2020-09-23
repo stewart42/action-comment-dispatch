@@ -1394,6 +1394,25 @@ module.exports = require("os");
 
 "use strict";
 
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -1403,37 +1422,34 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-const core_1 = __importDefault(__webpack_require__(186));
+const core = __importStar(__webpack_require__(186));
 const github_1 = __webpack_require__(438);
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            core_1.default.debug(`event triggered ${github_1.context.eventName}`);
+            core.debug(`event triggered ${github_1.context.eventName}`);
             if (github_1.context.eventName !== 'issue_comment') {
-                core_1.default.setFailed('Event is not "issue_comment"');
+                core.setFailed('Event is not "issue_comment"');
                 return;
             }
-            const token = core_1.default.getInput('GITHUB_TOKEN', { required: true });
+            const token = core.getInput('GITHUB_TOKEN', { required: true });
             if (!token) {
-                core_1.default.debug(`no token provided`);
-                core_1.default.setFailed('If "reaction" is supplied, GITHUB_TOKEN is required');
+                core.debug(`no token provided`);
+                core.setFailed('If "reaction" is supplied, GITHUB_TOKEN is required');
                 return;
             }
             const { owner, repo } = github_1.context.repo;
-            core_1.default.debug(`owner: ${owner} repo: ${repo}`);
+            core.debug(`owner: ${owner} repo: ${repo}`);
             const octokit = github_1.getOctokit(token);
             const { data: { pull_request } } = yield octokit.issues.get({
                 owner,
                 repo,
                 issue_number: github_1.context.issue.number
             });
-            core_1.default.debug(`is pull request: ${!!pull_request} ${pull_request}`);
+            core.debug(`is pull request: ${!!pull_request} ${pull_request}`);
             if (!pull_request) {
-                core_1.default.setFailed('Comment is not on a Pull Request');
+                core.setFailed('Comment is not on a Pull Request');
                 return;
             }
             const { comment } = github_1.context.payload || {
@@ -1443,7 +1459,7 @@ function run() {
                 }
             };
             if (comment && comment.id) {
-                core_1.default.debug(`comment: ${comment.id} ${comment.body}`);
+                core.debug(`comment: ${comment.id} ${comment.body}`);
                 yield octokit.reactions.createForIssueComment({
                     owner,
                     repo,
@@ -1481,7 +1497,7 @@ function run() {
                 head_ref: headRef.name,
                 head_sha: headRef.target.oid
             };
-            core_1.default.debug(`clientPayload: ${clientPayload}`);
+            core.debug(`clientPayload: ${clientPayload}`);
             if (comment) {
                 const eventType = comment.body;
                 yield octokit.repos.createDispatchEvent({
@@ -1501,8 +1517,8 @@ function run() {
             }
         }
         catch (error) {
-            core_1.default.debug(error);
-            core_1.default.setFailed(error.message);
+            core.debug(error);
+            core.setFailed(error.message);
         }
     });
 }
