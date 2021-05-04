@@ -1,34 +1,48 @@
-<p align="center">
-  <a href="https://github.com/actions/typescript-action/actions"><img alt="typescript-action status" src="https://github.com/actions/typescript-action/workflows/build-test/badge.svg"></a>
-</p>
+# Action Comment Dispatch
 
-# Create a JavaScript Action using TypeScript
+## Usage
 
-Use this template to bootstrap the creation of a TypeScript action.:rocket:
+Action inputs
 
-This template includes compilation support, tests, a validation workflow, publishing, and versioning guidance.  
+| Name           | Description                                                                                                                                  |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GITHUB_TOKEN` | A `repo` scoped GitHub [Personal Access Token](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token). |
+| `prefix`       | Comment must start with this value, eg: @bot                                                                                                 |
+| `trigger`      | The text in the comment to trigger the repository dispatch, eg deploy                                                                        |
+| `event_type`   | The custom event_type to send with when triggering the repository dispatch                                                                   |
 
-If you are new, there's also a simpler introduction.  See the [Hello World JavaScript Action](https://github.com/actions/hello-world-javascript-action)
+```yaml
+- uses: stewart42/action-comment-dispatch@main
+  with:
+    GITHUB_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
+    prefix: 'bot'
+    trigger: 'format'
+    event_type: 'format'
+```
 
-## Create an action from this template
+### `GITHUB_TOKEN`
 
-Click the `Use this Template` and provide the new repo details for your action
+This action creates [`repository_dispatch`](https://developer.github.com/v3/repos/#create-a-repository-dispatch-event) events.
+The default `GITHUB_TOKEN` does not have scopes to do this so a `repo` scoped [PAT](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token) created on a user with `write` access to the target repository is required. If you will be dispatching to a public repository then you can use the more limited `public_repo` scope.
 
-## Code in Main
+## Developer setup
 
-Install the dependencies  
-```bash
-$ npm install
+Install the dependencies
+
+```sh
+npm install
 ```
 
 Build the typescript and package it for distribution
-```bash
-$ npm run build && npm run package
+
+```sh
+npm run build && npm run package
 ```
 
-Run the tests :heavy_check_mark:  
-```bash
-$ npm test
+Run the tests :heavy_check_mark:
+
+```sh
+npm test
 
  PASS  ./index.test.js
   ✓ throws invalid number (3ms)
@@ -38,66 +52,36 @@ $ npm test
 ...
 ```
 
-## Change action.yml
-
-The action.yml contains defines the inputs and output for your action.
-
-Update the action.yml with your name, description, inputs and outputs for your action.
-
-See the [documentation](https://help.github.com/en/articles/metadata-syntax-for-github-actions)
-
-## Change the Code
-
-Most toolkit and CI/CD operations involve async operations so the action is run in an async function.
-
-```javascript
-import * as core from '@actions/core';
-...
-
-async function run() {
-  try { 
-      ...
-  } 
-  catch (error) {
-    core.setFailed(error.message);
-  }
-}
-
-run()
-```
-
 See the [toolkit documentation](https://github.com/actions/toolkit/blob/master/README.md#packages) for the various packages.
 
 ## Publish to a distribution branch
 
-Actions are run from GitHub repos so we will checkin the packed dist folder. 
+Actions are run from GitHub repos so we will checkin the packed dist folder.
 
 Then run [ncc](https://github.com/zeit/ncc) and push the results:
+
 ```bash
-$ npm run package
-$ git add dist
-$ git commit -a -m "prod dependencies"
-$ git push origin releases/v1
+npm run package
+git add dist
+git commit -a -m "prod dependencies"
+git push origin releases/v1
 ```
 
-Note: We recommend using the `--license` option for ncc, which will create a license file for all of the production node modules used in your project.
-
-Your action is now published! :rocket: 
+Your action is now published! :rocket:
 
 See the [versioning documentation](https://github.com/actions/toolkit/blob/master/docs/action-versioning.md)
 
-## Validate
+## Validate & Testing
 
-You can now validate the action by referencing `./` in a workflow in your repo (see [test.yml](.github/workflows/test.yml))
+You can now validate the action by referencing `./` in a workflow in your repo (see [test.yml](.github/workflows/comment-bot.yml))
 
 ```yaml
 uses: ./
 with:
-  milliseconds: 1000
+  GITHUB_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
+  prefix: 'bot'
+  trigger: 'format'
+  event_type: 'format'
 ```
 
 See the [actions tab](https://github.com/actions/typescript-action/actions) for runs of this action! :rocket:
-
-## Usage:
-
-After testing you can [create a v1 tag](https://github.com/actions/toolkit/blob/master/docs/action-versioning.md) to reference the stable and latest V1 action

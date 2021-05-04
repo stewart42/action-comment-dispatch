@@ -1,5 +1,5 @@
 import * as core from '@actions/core'
-import {context, getOctokit} from '@actions/github'
+import { context, getOctokit } from '@actions/github'
 
 async function run(): Promise<void> {
   try {
@@ -11,22 +11,22 @@ async function run(): Promise<void> {
       return
     }
 
-    const token = core.getInput('GITHUB_TOKEN', {required: true})
-    const prefix = core.getInput('prefix', {required: true})
-    const trigger = core.getInput('trigger', {required: true})
-    const eventType = core.getInput('event_type', {required: true})
+    const token = core.getInput('GITHUB_TOKEN', { required: true })
+    const prefix = core.getInput('prefix', { required: true })
+    const trigger = core.getInput('trigger', { required: true })
+    const eventType = core.getInput('event_type', { required: true })
 
-    const {owner, repo} = context.repo
+    const { owner, repo } = context.repo
     core.debug(`owner: ${owner} repo: ${repo}`)
 
     const octokit = getOctokit(token)
 
     const {
-      data: {pull_request}
+      data: { pull_request },
     } = await octokit.issues.get({
       owner,
       repo,
-      issue_number: context.issue.number
+      issue_number: context.issue.number,
     })
 
     if (!pull_request) {
@@ -36,9 +36,9 @@ async function run(): Promise<void> {
     }
     core.info(`Comment is on a Pull Request`)
 
-    const comment: {id: number | undefined; body: string | undefined} = {
+    const comment: { id: number | undefined; body: string | undefined } = {
       id: context.payload.comment?.id,
-      body: context.payload.comment?.body
+      body: context.payload.comment?.body,
     }
 
     if (!comment.id) {
@@ -69,14 +69,14 @@ async function run(): Promise<void> {
       owner,
       repo,
       comment_id: comment.id,
-      content: 'eyes'
+      content: 'eyes',
     })
     core.info('Added :eyes: reaction to comment.')
 
     const {
       repository: {
-        pullRequest: {baseRef, headRef}
-      }
+        pullRequest: { baseRef, headRef },
+      },
     } = await octokit.graphql(
       `
           query pullRequestDetails($repo:String!, $owner:String!, $number:Int!) {
@@ -101,26 +101,26 @@ async function run(): Promise<void> {
       {
         owner,
         repo,
-        number: context.issue.number
-      }
+        number: context.issue.number,
+      },
     )
 
     const clientPayload = {
       base_ref: baseRef.name,
       base_sha: baseRef.target.oid,
       head_ref: headRef.name,
-      head_sha: headRef.target.oid
+      head_sha: headRef.target.oid,
     }
 
     core.info(
-      `Retrieved PR sha: ${clientPayload.head_sha} and ref: ${clientPayload.head_ref}`
+      `Retrieved PR sha: ${clientPayload.head_sha} and ref: ${clientPayload.head_ref}`,
     )
 
     await octokit.repos.createDispatchEvent({
       owner,
       repo,
       event_type: eventType,
-      client_payload: clientPayload
+      client_payload: clientPayload,
     })
 
     core.info(`Created Repository Dispatch with type: ${eventType}`)
@@ -129,7 +129,7 @@ async function run(): Promise<void> {
       owner,
       repo,
       comment_id: comment.id,
-      content: 'rocket'
+      content: 'rocket',
     })
     core.info('Added :rocket: reaction to comment.')
     core.endGroup()
